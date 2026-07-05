@@ -26,7 +26,6 @@ class UserAdapter(private val user: User, private val orders: List<Order>) : Rec
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        Log.d("UserAdapter", "onCreateViewHolder called")
         val view = LayoutInflater.from(parent.context).inflate(R.layout.user_item, parent, false)
         return ViewHolder(view)
     }
@@ -34,23 +33,21 @@ class UserAdapter(private val user: User, private val orders: List<Order>) : Rec
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         try {
-            Log.d("UserAdapter", "onBindViewHolder called for position $position")
-            holder.name.text = user.getName()
-            holder.email.text = user.getEmail()
-            holder.phone.text = user.getPhoneNumber()
-            holder.birthdate.text = "Fecha Nacimiento: ${ user.getBirthDate()}"
+            holder.name.text = user.name
+            holder.email.text = user.email
+            holder.phone.text = user.phoneNumber
+            holder.birthdate.text = "Fecha Nacimiento: ${user.birthDate}"
 
-            Glide.with(holder.itemView.context).load(user.getImage()).into(holder.image)
+            Glide.with(holder.itemView.context).load(user.image).into(holder.image)
 
             holder.ordersRecyclerView.layoutManager = LinearLayoutManager(holder.itemView.context)
             holder.ordersRecyclerView.adapter = OrderUserAdapter(holder.itemView.context, orders, user)
         } catch (e: Exception) {
-            Log.d("UserAdapter", "Error in onBindViewHolder at position $position: ${e.message}")
+            Log.d("UserAdapter", "Error: ${e.message}")
         }
     }
 
     override fun getItemCount(): Int {
         return 1
     }
-
 }

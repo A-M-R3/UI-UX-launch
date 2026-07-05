@@ -1,11 +1,11 @@
 package com.universitatcarlemany.activity3.controller
 
-import android.util.Log
 import com.universitatcarlemany.activity3.model.entity.MenuItem
 import com.universitatcarlemany.activity3.model.entity.Order
 import com.universitatcarlemany.activity3.model.entity.OrderStatus
 import com.universitatcarlemany.activity3.model.entity.Restaurant
 import com.universitatcarlemany.activity3.model.entity.User
+import java.util.Date
 
 object OrderManager {
     private val orders = mutableListOf<Order>()
@@ -22,7 +22,7 @@ object OrderManager {
 
     fun getOrder(user: User): Order? {
         return orders.find {
-            it.getUser().getEmail() == user.getEmail() && it.getStatus() == OrderStatus.IN_PROGRESS
+            it.user.email == user.email && it.status == OrderStatus.IN_PROGRESS
         }
     }
 
@@ -31,11 +31,8 @@ object OrderManager {
     }
 
     fun saverOrder(order: Order) {
-        order.setStatus(OrderStatus.PAID)
-        order.setPaidDate()
-
-        // [COMMENT] Create order here and save it to the API
-
+        order.status = OrderStatus.PAID
+        order.date = Date()
     }
 
     fun getOrders(): List<Order> {

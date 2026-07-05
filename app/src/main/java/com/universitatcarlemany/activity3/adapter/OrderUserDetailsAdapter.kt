@@ -21,50 +21,44 @@ class OrderUserDetailsAdapter(
     private val menuItems: List<MenuItem>,
     private val order: Order
 ) : RecyclerView.Adapter<OrderUserDetailsAdapter.MenuViewHolder>() {
-        class MenuViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            val itemName: TextView = itemView.findViewById(R.id.item_name)
-            val itemPrice: TextView = itemView.findViewById(R.id.item_price)
-            val itemDescription: TextView = itemView.findViewById(R.id.item_description)
-            val itemImage: ImageView = itemView.findViewById(R.id.item_image)
-            val removeFromCart: Button = itemView.findViewById(R.id.remove_from_cart)
-        }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MenuViewHolder {
-            Log.d("OrderUserDetailsAdapter", "Entered onCreateViewHolder of OrderUserDetailsAdapter")
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.order_item_summary_item, parent, false)
-            return MenuViewHolder(view)
-        }
+    class MenuViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val itemName: TextView = itemView.findViewById(R.id.item_name)
+        val itemPrice: TextView = itemView.findViewById(R.id.item_price)
+        val itemDescription: TextView = itemView.findViewById(R.id.item_description)
+        val itemImage: ImageView = itemView.findViewById(R.id.item_image)
+        val removeFromCart: Button = itemView.findViewById(R.id.remove_from_cart)
+    }
 
-        @SuppressLint("DefaultLocale", "NotifyDataSetChanged")
-        override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
-            try{
-                Log.d("OrderUserDetailsAdapter", "Entered onBindViewHolder of OrderUserDetailsAdapter")
-                val menuItem = menuItems[position]
-                holder.itemName.text = menuItem.getName()
-                holder.itemPrice.text = String.format("%.2f€", menuItem.getPrice())
-                holder.itemDescription.text = menuItem.getDescription()
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MenuViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.order_item_summary_item, parent, false)
+        return MenuViewHolder(view)
+    }
 
-                Glide.with(holder.itemView.context).load(menuItem.getImage()).into(holder.itemImage)
+    @SuppressLint("DefaultLocale", "NotifyDataSetChanged")
+    override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
+        try {
+            val menuItem = menuItems[position]
+            holder.itemName.text = menuItem.name
+            holder.itemPrice.text = String.format("%.2f€", menuItem.price)
+            holder.itemDescription.text = menuItem.description
 
-                holder.removeFromCart.setOnClickListener {
-                    try {
-                        order.removeItem(menuItem)
+            Glide.with(holder.itemView.context).load(menuItem.image).into(holder.itemImage)
 
-                        menuItem.addUnits(-1)
-
-                        notifyDataSetChanged()
-                        (context as? OrderSummaryActivity)?.reload()
-                        Log.d("OrderDetailAdapter", "${menuItem.getName()} was removed from the order")
-                    } catch (e: IllegalArgumentException) {
-                        Log.e("OrderDetailAdapter", "Error while removing item from the order: ${e.message}")
-                    }
+            holder.removeFromCart.setOnClickListener {
+                try {
+                    order.removeItem(menuItem)
+                    menuItem.addUnits(1)
+                    notifyDataSetChanged()
+                    (context as? OrderSummaryActivity)?.reload()
+                } catch (e: IllegalArgumentException) {
+                    Log.e("OrderDetailAdapter", "Error: ${e.message}")
                 }
-            } catch (e: Exception) {
-                Log.d("OrderUserDetailsAdapter", "Error in onBindViewHolder at position $position: ${e.message}")
             }
-
+        } catch (e: Exception) {
+            Log.d("OrderUserDetailsAdapter", "Error: ${e.message}")
         }
+    }
 
-        override fun getItemCount() = menuItems.size
-
+    override fun getItemCount() = menuItems.size
 }

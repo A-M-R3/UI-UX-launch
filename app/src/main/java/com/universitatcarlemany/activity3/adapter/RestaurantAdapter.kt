@@ -14,8 +14,12 @@ import com.universitatcarlemany.activity3.R
 import com.universitatcarlemany.activity3.controller.MenuActivity
 import com.universitatcarlemany.activity3.model.entity.Restaurant
 import com.universitatcarlemany.activity3.model.entity.User
+import java.io.Serializable
 
-class RestaurantAdapter(private val restaurants: List<Restaurant>, private val user: User) : RecyclerView.Adapter<RestaurantAdapter.ViewHolder>() {
+class RestaurantAdapter(
+    private val restaurants: List<Restaurant>,
+    private val user: User
+) : RecyclerView.Adapter<RestaurantAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.findViewById(R.id.restaurant_name)
@@ -26,7 +30,6 @@ class RestaurantAdapter(private val restaurants: List<Restaurant>, private val u
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        Log.d("RestaurantAdapter", "onCreateViewHolder called")
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_restaurant, parent, false)
         return ViewHolder(view)
     }
@@ -34,31 +37,29 @@ class RestaurantAdapter(private val restaurants: List<Restaurant>, private val u
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         try {
-            Log.d("RestaurantAdapter", "onBindViewHolder called for position $position")
-            holder.name.text = restaurants[position].getName()
-            holder.address.text = restaurants[position].getAddress()
-            holder.openingTime.text = "Abre: ${ restaurants[position].getOpeningTime()}"
-            holder.closingTime.text = "Cierra: ${ restaurants[position].getClosingTime()}"
+            val restaurant = restaurants[position]
 
-            Glide.with(holder.itemView.context).load(restaurants[position].getImage()).into(holder.image)
+            holder.name.text = restaurant.name
+            holder.address.text = restaurant.address
+            holder.openingTime.text = "Abre: ${restaurant.openingTime}"
+            holder.closingTime.text = "Cierra: ${restaurant.closingTime}"
+
+            Glide.with(holder.itemView.context).load(restaurant.image).into(holder.image)
 
             holder.itemView.setOnClickListener {
                 val context = holder.itemView.context
                 val intent = Intent(context, MenuActivity::class.java)
 
-                intent.putExtra("user", user)
-                intent.putExtra("restaurant", restaurants[position])
-                intent.putExtra("menu", restaurants[position].getMenu())
+                intent.putExtra("user", user as Serializable)
+                intent.putExtra("restaurant", restaurant as Serializable)
+                // Se eliminó la inyección del menú aquí. Ahora se encarga el ViewModel.
+
                 context.startActivity(intent)
             }
         } catch (e: Exception) {
-            Log.d("RestaurantAdapter", "Error in onBindViewHolder at position $position: ${e.message}")
+            Log.e("RestaurantAdapter", "Error: ${e.message}")
         }
     }
 
-    override fun getItemCount(): Int {
-        Log.d("RestaurantAdapter", "getItemCount called, size: ${restaurants.size}")
-        return restaurants.size
-    }
-
+    override fun getItemCount(): Int = restaurants.size
 }

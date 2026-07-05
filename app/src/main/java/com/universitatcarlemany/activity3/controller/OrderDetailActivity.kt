@@ -1,7 +1,6 @@
 package com.universitatcarlemany.activity3.controller
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,7 +19,6 @@ class OrderDetailActivity : AppCompatActivity() {
         val user: User? = intent.getParcelableExtra("user", User::class.java)
 
         if (user == null) {
-            Log.e("OrderDetailActivity", "User is null")
             finish()
             return
         }
@@ -29,7 +27,7 @@ class OrderDetailActivity : AppCompatActivity() {
 
         if (orderId != -1) {
             val order = OrderManager.getOrders().find {
-                it.getId() == orderId && it.getUser().getEmail() == user.getEmail()
+                it.id == orderId && it.user.email == user.email
             }
 
             if (order != null) {
@@ -38,7 +36,7 @@ class OrderDetailActivity : AppCompatActivity() {
                 val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
                 recyclerView.layoutManager = LinearLayoutManager(this)
 
-                val adapter = OrderDetailAdapter(order.getItems())
+                val adapter = OrderDetailAdapter(order.items)
                 recyclerView.adapter = adapter
             }
         }
@@ -47,6 +45,5 @@ class OrderDetailActivity : AppCompatActivity() {
         backButton.setOnClickListener {
             finish()
         }
-
     }
 }

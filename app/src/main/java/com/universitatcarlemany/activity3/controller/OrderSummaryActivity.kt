@@ -1,9 +1,7 @@
 package com.universitatcarlemany.activity3.controller
 
-
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -28,7 +26,6 @@ class OrderSummaryActivity : ComponentActivity() {
         val user: User? = intent.getParcelableExtra("user", User::class.java)
 
         if (user == null) {
-            Log.e("OrderSummaryActivity", "User is null")
             finish()
             return
         }
@@ -38,11 +35,11 @@ class OrderSummaryActivity : ComponentActivity() {
         if (order != null) {
             val recyclerView = findViewById<RecyclerView>(R.id.order_items_recyclerview)
             recyclerView.layoutManager = LinearLayoutManager(this)
-            val adapter = OrderUserDetailsAdapter(this,order.getItems(),order)
+            val adapter = OrderUserDetailsAdapter(this, order.items, order)
             recyclerView.adapter = adapter
 
             val totalTextView = findViewById<TextView>(R.id.order_total_text)
-            totalTextView.text = "Total: €${String.format("%.2f", order.getTotalCost())}"
+            totalTextView.text = "Total: €${String.format("%.2f", order.totalCost)}"
 
             val finalizeOrderButton: Button = findViewById(R.id.finalize_order_button)
             finalizeOrderButton.setOnClickListener {
@@ -51,7 +48,7 @@ class OrderSummaryActivity : ComponentActivity() {
                 finish()
             }
 
-            if (order.getItems().isEmpty()) {
+            if (order.items.isEmpty()) {
                 finalizeOrderButton.visibility = View.GONE
                 Toast.makeText(this, "Pedido sin artículos, agregue platos", Toast.LENGTH_SHORT).show()
                 finish()

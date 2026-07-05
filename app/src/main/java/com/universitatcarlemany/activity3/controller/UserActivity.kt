@@ -1,7 +1,6 @@
 package com.universitatcarlemany.activity3.controller
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,7 +18,6 @@ class UserActivity : ComponentActivity() {
         val user: User? = intent.getParcelableExtra("user", User::class.java)
 
         if (user == null) {
-            Log.e("UserActivity", "User is null")
             finish()
             return
         }
@@ -30,7 +28,7 @@ class UserActivity : ComponentActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         val toolbar: androidx.appcompat.widget.Toolbar = findViewById(R.id.toolbar)
-        toolbar.title = user.getName().uppercase()
+        toolbar.title = user.name.uppercase()
 
         val backButton: Button = findViewById(R.id.back_button)
         backButton.setOnClickListener {
