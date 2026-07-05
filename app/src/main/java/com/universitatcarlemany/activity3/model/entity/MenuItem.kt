@@ -1,51 +1,26 @@
 package com.universitatcarlemany.activity3.model.entity
 
-class MenuItem(
-    private val id: Int,
-    private val name: String,
-    price: Double,
-    private val description: String,
-    private val image: String,
-    private var units: Int,
-    private val restaurant: Restaurant
-) {
-    private var _price = price
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
 
-    init {
-        if (price < 0) {
-            throw IllegalArgumentException("Price must be a positive number")
-        }
+@Entity(tableName = "menu_items")
+data class MenuItem(
+    @PrimaryKey(autoGenerate = true)
+    val localId: Int = 0,
 
-        if (units < 0) {
-            throw IllegalArgumentException("Units must be a positive number")
-        }
+    @SerializedName("id")
+    val id: String,
 
-        setPrice(price)
-    }
+    @SerializedName("name")
+    val name: String,
 
-    fun getId(): Int = id
+    @SerializedName("price")
+    val price: Double,
 
-    fun getName(): String = name
+    @SerializedName("description")
+    val description: String,
 
-    fun getPrice(): Double = _price
-
-    private fun setPrice(value: Double) {
-        _price = Math.round(value * 100.0) / 100.0
-    }
-
-    fun getDescription(): String = description
-
-    fun getImage(): String = image
-
-    fun getUnits(): Int = units
-
-    fun addUnits(units: Int) {
-        this.units += units
-    }
-
-    fun decUnits() {
-        this.units--
-    }
-
-    fun getRestaurant(): Restaurant = restaurant
-}
+    @SerializedName("imageUrl")
+    val imageUrl: String
+)
