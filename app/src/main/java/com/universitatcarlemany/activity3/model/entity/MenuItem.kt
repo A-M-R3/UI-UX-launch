@@ -1,26 +1,54 @@
 package com.universitatcarlemany.activity3.model.entity
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
 @Entity(tableName = "menu_items")
-data class MenuItem(
+class MenuItem(
     @PrimaryKey(autoGenerate = true)
-    val localId: Int = 0,
+    private val localId: Int = 0,
 
     @SerializedName("id")
-    val id: String,
+    private val id: String,
 
     @SerializedName("name")
-    val name: String,
+    private val name: String,
 
     @SerializedName("price")
-    val price: Double,
+    private val price: Double,
 
     @SerializedName("description")
-    val description: String,
+    private val description: String,
 
     @SerializedName("imageUrl")
-    val imageUrl: String
-)
+    private val imageUrl: String,
+
+    @SerializedName("units")
+    private var units: Int = 0
+) {
+    @Ignore
+    private var restaurant: Restaurant? = null
+
+    fun getLocalId(): Int = localId
+    fun getId(): String = id
+    fun getName(): String = name
+    fun getPrice(): Double = price
+    fun getDescription(): String = description
+    fun getImage(): String = imageUrl
+    fun getUnits(): Int = units
+    
+    fun addUnits(count: Int = 1) {
+        units += count
+    }
+    
+    fun decUnits() {
+        if (units > 0) units--
+    }
+    
+    fun getRestaurant(): Restaurant? = restaurant
+    fun setRestaurant(r: Restaurant?) {
+        this.restaurant = r
+    }
+}

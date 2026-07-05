@@ -10,7 +10,7 @@ import com.universitatcarlemany.activity3.model.entity.User
 object OrderManager {
     private val orders = mutableListOf<Order>()
 
-    fun createOrder(user: User, restaurant: Restaurant): Order {
+    fun createOrder(user: User, restaurant: Restaurant?): Order {
         val order = Order(
             user = user,
             restaurant = restaurant
