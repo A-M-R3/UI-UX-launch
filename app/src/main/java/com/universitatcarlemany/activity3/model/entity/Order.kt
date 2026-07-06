@@ -12,6 +12,9 @@ data class Order(
     val items: MutableList<MenuItem> = mutableListOf()
 ) : Serializable {
 
+    var rawPaidDate: String = ""
+    var rawDeliveredDate: String? = null
+
     val totalCost: Double
         get() = items.sumOf { it.price }
 

@@ -45,7 +45,8 @@ class UserActivity : ComponentActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             val repository = RestaurantRepository()
-            val apiOrdersDTO = repository.getUserOrdersFromApi(user.email)
+            // CORRECCIÓN: Forzamos el email a minúsculas y sin espacios
+            val apiOrdersDTO = repository.getUserOrdersFromApi(user.email.lowercase().trim())
 
             withContext(Dispatchers.Main) {
                 if (apiOrdersDTO.isEmpty()) {
@@ -84,6 +85,10 @@ class UserActivity : ComponentActivity() {
                         date = date,
                         items = dummyItems
                     )
+
+                    // PRESERVACIÓN: Guardamos las fechas originales de la API
+                    order.rawPaidDate = dto.paidDate
+                    order.rawDeliveredDate = dto.deliveredDate
 
                     OrderManager.addRemoteOrder(order)
                     order

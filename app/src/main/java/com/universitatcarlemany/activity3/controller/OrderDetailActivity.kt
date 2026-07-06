@@ -15,6 +15,8 @@ import com.universitatcarlemany.activity3.model.entity.OrderStatus
 import com.universitatcarlemany.activity3.model.entity.User
 import com.universitatcarlemany.activity3.repository.RestaurantRepository
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class OrderDetailActivity : AppCompatActivity() {
 
@@ -50,52 +52,55 @@ class OrderDetailActivity : AppCompatActivity() {
                 val parentLayout = backButton.parent as? LinearLayout
                 if (parentLayout != null) {
 
-                    // BOTÓN 1: MODIFICAR ESTADO A DELIVERED
                     val modifyButton = Button(this).apply {
                         text = "Marcar como Entregado (PUT)"
                         setOnClickListener {
                             lifecycleScope.launch {
+                                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
                                 order.status = OrderStatus.DELIVERED
                                 val repository = RestaurantRepository()
+
+                                // CORRECCIÓN: Reutilizamos order.rawPaidDate para pasar el filtro del servidor
                                 val dto = OrderDTO(
                                     id = order.id,
                                     status = "DELIVERED",
                                     restaurantId = order.restaurant?.id ?: -1,
                                     items = order.items.map { it.id },
                                     totalCost = order.totalCost,
-                                    paidDate = "2026-07-06T20:00:00",
-                                    deliveredDate = "2026-07-06T22:00:00"
+                                    paidDate = order.rawPaidDate,
+                                    deliveredDate = LocalDateTime.now().format(formatter)
                                 )
-                                val res = repository.updateOrderInApi(user.email, order.id, dto)
+                                val res = repository.updateOrderInApi(user.email.lowercase().trim(), order.id, dto)
                                 if (res != null) {
-                                    Toast.makeText(this@OrderDetailActivity, "¡Pedido modificado a ENTREGADO en el servidor!", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(this@OrderDetailActivity, "¡Pedido modificado a ENTREGADO!", Toast.LENGTH_LONG).show()
                                     finish()
                                 } else {
-                                    Toast.makeText(this@OrderDetailActivity, "Error de red al actualizar", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(this@OrderDetailActivity, "Error al actualizar", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
                     }
 
-                    // BOTÓN 2: CANCELAR PEDIDO (Revertir estado en la API)
                     val cancelButton = Button(this).apply {
                         text = "Cancelar Pedido (PUT)"
                         setOnClickListener {
                             lifecycleScope.launch {
                                 order.status = OrderStatus.IN_PROGRESS
                                 val repository = RestaurantRepository()
+
+                                // CORRECCIÓN: Reutilizamos order.rawPaidDate y status "IN_PROGRESS"
                                 val dto = OrderDTO(
                                     id = order.id,
                                     status = "IN_PROGRESS",
                                     restaurantId = order.restaurant?.id ?: -1,
                                     items = order.items.map { it.id },
                                     totalCost = order.totalCost,
-                                    paidDate = "",
+                                    paidDate = order.rawPaidDate,
                                     deliveredDate = null
                                 )
-                                val res = repository.updateOrderInApi(user.email, order.id, dto)
+                                val res = repository.updateOrderInApi(user.email.lowercase().trim(), order.id, dto)
                                 if (res != null) {
-                                    Toast.makeText(this@OrderDetailActivity, "¡Pedido cancelado de forma remota!", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(this@OrderDetailActivity, "¡Pedido cancelado con éxito!", Toast.LENGTH_LONG).show()
                                     finish()
                                 } else {
                                     Toast.makeText(this@OrderDetailActivity, "Error al cancelar en el servidor", Toast.LENGTH_SHORT).show()

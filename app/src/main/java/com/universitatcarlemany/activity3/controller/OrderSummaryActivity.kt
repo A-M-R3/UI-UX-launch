@@ -54,8 +54,6 @@ class OrderSummaryActivity : ComponentActivity() {
             val finalizeOrderButton: Button = findViewById(R.id.finalize_order_button)
 
             finalizeOrderButton.setOnClickListener {
-
-                // 1. SOLUCIÓN BLINDADA: Delegamos al Manager que ya compila en tu PC para fijar el estado y la fecha
                 OrderManager.saverOrder(order)
 
                 finalizeOrderButton.isEnabled = false
@@ -63,21 +61,20 @@ class OrderSummaryActivity : ComponentActivity() {
 
                 lifecycleScope.launch {
                     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+                    val restId = order.restaurant?.id ?: -1
 
-                    // 2. PARCHE DE TIPO: Forzamos toString() antes de toInt() para que nunca colapse
-                    val restId = order.restaurant?.id?.toString()?.toIntOrNull() ?: -1
-
+                    // CORRECCIÓN: id = 0 para creación limpia y status = "PAID" estricto
                     val pedidoOptimizado = OrderDTO(
-                        id = order.id,
-                        status = order.status.toString(),
+                        id = 0,
+                        status = "PAID",
                         restaurantId = restId,
-                        items = order.items.map { it.id.toString() },
+                        items = order.items.map { it.id },
                         totalCost = order.totalCost,
                         paidDate = LocalDateTime.now().format(formatter),
                         deliveredDate = null
                     )
 
-                    val respuestaServidor = repository.createOrderInApi(user.email, pedidoOptimizado)
+                    val respuestaServidor = repository.createOrderInApi(user.email.lowercase().trim(), pedidoOptimizado)
 
                     if (respuestaServidor != null) {
                         Toast.makeText(this@OrderSummaryActivity, "¡Pedido finalizado con éxito!", Toast.LENGTH_LONG).show()
@@ -86,7 +83,7 @@ class OrderSummaryActivity : ComponentActivity() {
                         order.status = OrderStatus.IN_PROGRESS
                         finalizeOrderButton.isEnabled = true
                         finalizeOrderButton.text = "Finalizar pedido"
-                        Toast.makeText(this@OrderSummaryActivity, "Error de conexión al procesar", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@OrderSummaryActivity, "Error de validación del servidor (HTTP 400)", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
