@@ -22,9 +22,13 @@ class MenuViewModel(restaurant: Restaurant) : ViewModel() {
     }
 
     private fun loadMenu(idRestaurant: Int) {
-        // Lanzamos la corrutina para descargar los platos de este restaurante en específico
         viewModelScope.launch {
-            _items.value = repository.getMenuFromApi(idRestaurant)
+            val downloadedItems = repository.getMenuFromApi(idRestaurant)
+            downloadedItems.forEach { plato ->
+                plato.restaurant = restaurantOwner
+            }
+
+            _items.value = downloadedItems
         }
     }
 }

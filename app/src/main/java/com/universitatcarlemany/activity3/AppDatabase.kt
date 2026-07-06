@@ -7,7 +7,8 @@ import androidx.room.RoomDatabase
 import com.universitatcarlemany.activity3.model.entity.CartItem
 import com.universitatcarlemany.activity3.model.entity.CartDao
 
-@Database(entities = [CartItem::class], version = 1, exportSchema = false)
+// Subimos la versión a 2 para aplicar los cambios de esquema limpios
+@Database(entities = [CartItem::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cartDao(): CartDao
 
@@ -21,7 +22,10 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "cityxerpa_local_db"
-                ).build()
+                )
+                    // Instrucción CRÍTICA: Evita crasheos silenciosos si hubo cambios en tu código
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

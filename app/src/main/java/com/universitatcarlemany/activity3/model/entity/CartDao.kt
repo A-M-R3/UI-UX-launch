@@ -13,6 +13,15 @@ interface CartDao {
     @Query("SELECT * FROM cart_items WHERE restaurantId = :restId")
     suspend fun getCartForRestaurant(restId: String): List<CartItem>
 
+    @Query("SELECT * FROM cart_items")
+    suspend fun getAllCartItems(): List<CartItem>
+
     @Query("DELETE FROM cart_items WHERE restaurantId = :restId")
     suspend fun clearCart(restId: String)
+
+    @Query("DELETE FROM cart_items")
+    suspend fun clearAll()
+
+    @Query("DELETE FROM cart_items WHERE menuItemId = :itemId")
+    suspend fun deleteCartItem(itemId: String)
 }

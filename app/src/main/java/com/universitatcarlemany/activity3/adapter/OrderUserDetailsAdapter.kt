@@ -11,10 +11,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.universitatcarlemany.activity3.AppDatabase
 import com.universitatcarlemany.activity3.R
 import com.universitatcarlemany.activity3.controller.OrderSummaryActivity
 import com.universitatcarlemany.activity3.model.entity.MenuItem
 import com.universitatcarlemany.activity3.model.entity.Order
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class OrderUserDetailsAdapter(
     private val context: Context,
@@ -50,7 +54,18 @@ class OrderUserDetailsAdapter(
                     order.removeItem(menuItem)
                     menuItem.addUnits(1)
                     notifyDataSetChanged()
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val db = AppDatabase.getDatabase(context)
+                            db.cartDao().deleteCartItem(menuItem.id)
+                        } catch (e: Exception) {
+                            Log.e("OrderUserDetailsAdapter", "Fallo Room DB al borrar: ${e.message}")
+                        }
+                    }
+
                     (context as? OrderSummaryActivity)?.reload()
+
                 } catch (e: IllegalArgumentException) {
                     Log.e("OrderDetailAdapter", "Error: ${e.message}")
                 }

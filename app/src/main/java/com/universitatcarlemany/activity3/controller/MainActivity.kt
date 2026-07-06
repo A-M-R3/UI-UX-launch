@@ -5,16 +5,23 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.universitatcarlemany.activity3.AppDatabase
 import com.universitatcarlemany.activity3.R
 import com.universitatcarlemany.activity3.adapter.RestaurantAdapter
+import com.universitatcarlemany.activity3.model.entity.MenuItem
 import com.universitatcarlemany.activity3.model.entity.User
 import com.universitatcarlemany.activity3.view.RestaurantViewModel
-import java.time.LocalDate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.Serializable
+import java.time.LocalDate
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,22 +31,19 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val miCorreoUniversitario = "adrianmeneses@universitatcarlemany.com"
+
         val user = User(
-            "Carles", "Gallel", LocalDate.of(2000, 1, 1),
-            "Calle", "+376 878 300", "carles94bcn@gmail.com",
+            "Adrián", "Meneses", LocalDate.of(2000, 1, 1),
+            "Calle", "+376 878 300", miCorreoUniversitario,
             "https://t4.ftcdn.net/jpg/05/89/93/27/360_F_589932782_vQAEAZhHnq1QCGu5ikwrYaQD0Mmurm0N.png"
         )
 
-        // Programacion defensiva: Si el elemento no existe en el XML, recyclerView sera null pero no colapsara
         val recyclerView: RecyclerView? = findViewById(R.id.recycler_view)
-
         if (recyclerView != null) {
             recyclerView.layoutManager = LinearLayoutManager(this)
-        } else {
-            Log.e("MainActivity", "ATENCION: No se encontro recycler_view en tu activity_main.xml")
         }
 
-        // Protegemos la carga de iconos. Si no existen en tu diseno de la Actividad 2, la app simplemente los ignorara de forma segura
         val toolbarTitle: TextView? = findViewById(R.id.toolbar_title)
         toolbarTitle?.text = "RESTAURANTES"
 
@@ -63,6 +67,47 @@ class MainActivity : AppCompatActivity() {
             if (listaRestaurantes != null && listaRestaurantes.isNotEmpty() && recyclerView != null) {
                 val adapter = RestaurantAdapter(listaRestaurantes, user)
                 recyclerView.adapter = adapter
+
+                lifecycleScope.launch(Dispatchers.IO) {
+                    try {
+                        val db = AppDatabase.getDatabase(this@MainActivity)
+                        val pendingItems = db.cartDao().getAllCartItems()
+
+                        if (pendingItems.isNotEmpty()) {
+                            withContext(Dispatchers.Main) {
+                                val restIdStr = pendingItems.first().restaurantId
+                                val restId = restIdStr.toIntOrNull() ?: 0
+
+                                val targetRestaurant = listaRestaurantes.find { it.id == restId } ?: listaRestaurantes.firstOrNull()
+
+                                if (targetRestaurant != null) {
+                                    var order = OrderManager.getOrder(user)
+                                    if (order == null) {
+                                        order = OrderManager.createOrder(user, targetRestaurant)
+                                    }
+
+                                    if (order.items.isEmpty()) {
+                                        pendingItems.forEach { cartItem ->
+                                            val restoredMenuItem = MenuItem(
+                                                id = cartItem.menuItemId,
+                                                name = cartItem.name,
+                                                price = cartItem.price,
+                                                description = "Plato recuperado",
+                                                image = "",
+                                                units = cartItem.quantity
+                                            )
+                                            restoredMenuItem.restaurant = targetRestaurant
+                                            OrderManager.addItemToOrder(order, restoredMenuItem)
+                                        }
+                                        Toast.makeText(this@MainActivity, "Pedido recuperado con éxito", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MainActivity", "Error al acceder a Room DB: ${e.message}")
+                    }
+                }
             }
         }
     }

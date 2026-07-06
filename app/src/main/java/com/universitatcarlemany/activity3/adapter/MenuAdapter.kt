@@ -12,10 +12,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.universitatcarlemany.activity3.controller.OrderManager
+import com.universitatcarlemany.activity3.AppDatabase
 import com.universitatcarlemany.activity3.R
+import com.universitatcarlemany.activity3.controller.OrderManager
+import com.universitatcarlemany.activity3.model.entity.CartItem
 import com.universitatcarlemany.activity3.model.entity.MenuItem
 import com.universitatcarlemany.activity3.model.entity.User
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MenuAdapter(
     private val menuItems: List<MenuItem>,
@@ -68,7 +73,7 @@ class MenuAdapter(
             builder.setTitle("¿Agregar al pedido?")
             builder.setMessage("¿Agregar ${menuItem.name} al pedido?\n\nPrecio: ${String.format("%.2f€", menuItem.price)}")
 
-            builder.setPositiveButton("Add to order") { dialog, _ ->
+            builder.setPositiveButton("Añadir") { dialog, _ ->
                 var order = OrderManager.getOrder(user)
                 if (order == null) {
                     order = OrderManager.createOrder(user, menuItem.restaurant)
@@ -76,9 +81,26 @@ class MenuAdapter(
 
                 try {
                     OrderManager.addItemToOrder(order, menuItem)
-                    Toast.makeText(context, "${menuItem.name} added to order", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "${menuItem.name} añadido", Toast.LENGTH_SHORT).show()
                     menuItem.decUnits()
                     notifyDataSetChanged()
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val db = AppDatabase.getDatabase(context)
+                            val cartItem = CartItem(
+                                menuItemId = menuItem.id,
+                                restaurantId = menuItem.restaurant?.id?.toString() ?: "0",
+                                name = menuItem.name,
+                                price = menuItem.price,
+                                quantity = 1
+                            )
+                            db.cartDao().insertCartItem(cartItem)
+                        } catch (e: Exception) {
+                            Log.e("MenuAdapter", "Fallo Room DB: ${e.message}")
+                        }
+                    }
+
                 } catch (e: IllegalArgumentException) {
                     Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
