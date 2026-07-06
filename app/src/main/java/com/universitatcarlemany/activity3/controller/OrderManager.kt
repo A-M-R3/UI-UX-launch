@@ -35,6 +35,12 @@ object OrderManager {
         order.date = Date()
     }
 
+    fun addRemoteOrder(order: Order) {
+        if (orders.find { it.id == order.id } == null) {
+            orders.add(order)
+        }
+    }
+
     fun getOrders(): List<Order> {
         return orders
     }

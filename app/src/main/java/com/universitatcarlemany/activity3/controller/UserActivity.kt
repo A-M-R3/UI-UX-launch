@@ -9,11 +9,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.universitatcarlemany.activity3.R
 import com.universitatcarlemany.activity3.adapter.UserAdapter
+import com.universitatcarlemany.activity3.model.entity.MenuItem
+import com.universitatcarlemany.activity3.model.entity.Order
+import com.universitatcarlemany.activity3.model.entity.OrderStatus
+import com.universitatcarlemany.activity3.model.entity.Restaurant
 import com.universitatcarlemany.activity3.model.entity.User
 import com.universitatcarlemany.activity3.repository.RestaurantRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class UserActivity : ComponentActivity() {
 
@@ -21,7 +28,7 @@ class UserActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user)
 
-        val user: User? = intent.getSerializableExtra("user") as? User ?: intent.getParcelableExtra("user", User::class.java)
+        val user: User? = intent.getSerializableExtra("user") as? User
         if (user == null) {
             finish()
             return
@@ -38,13 +45,51 @@ class UserActivity : ComponentActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             val repository = RestaurantRepository()
-            val apiOrders = repository.getUserOrdersFromApi(user.email)
+            val apiOrdersDTO = repository.getUserOrdersFromApi(user.email)
 
             withContext(Dispatchers.Main) {
-                if (apiOrders.isEmpty()) {
-                    Toast.makeText(this@UserActivity, "No tienes compras finalizadas en el servidor", Toast.LENGTH_SHORT).show()
+                if (apiOrdersDTO.isEmpty()) {
+                    Toast.makeText(this@UserActivity, "No tienes compras en el servidor", Toast.LENGTH_SHORT).show()
                 }
-                recyclerView.adapter = UserAdapter(user, apiOrders)
+
+                val mappedOrders = apiOrdersDTO.map { dto ->
+                    val date = try {
+                        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                        sdf.parse(dto.paidDate) ?: Date()
+                    } catch (e: Exception) {
+                        Date()
+                    }
+
+                    val dummyRestaurant = Restaurant(
+                        id = dto.restaurantId,
+                        name = "Restaurante (ID: ${dto.restaurantId})",
+                        address = "", openingTime = "", closingTime = "", image = ""
+                    )
+
+                    val status = when (dto.status.uppercase()) {
+                        "PAID" -> OrderStatus.PAID
+                        "DELIVERED" -> OrderStatus.DELIVERED
+                        else -> OrderStatus.IN_PROGRESS
+                    }
+
+                    val dummyItems = dto.items.map { itemId ->
+                        MenuItem(localId = 0, id = itemId, name = "Plato ID: $itemId", price = dto.totalCost / dto.items.size, description = "", image = "", units = 1)
+                    }.toMutableList()
+
+                    val order = Order(
+                        user = user,
+                        id = dto.id,
+                        restaurant = dummyRestaurant,
+                        status = status,
+                        date = date,
+                        items = dummyItems
+                    )
+
+                    OrderManager.addRemoteOrder(order)
+                    order
+                }
+
+                recyclerView.adapter = UserAdapter(user, mappedOrders)
             }
         }
     }

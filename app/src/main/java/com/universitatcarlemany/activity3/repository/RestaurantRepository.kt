@@ -3,7 +3,6 @@ package com.universitatcarlemany.activity3.repository
 import android.util.Log
 import com.google.gson.GsonBuilder
 import com.universitatcarlemany.activity3.model.entity.MenuItem
-import com.universitatcarlemany.activity3.model.entity.Order
 import com.universitatcarlemany.activity3.model.entity.OrderDTO
 import com.universitatcarlemany.activity3.model.entity.Restaurant
 import com.universitatcarlemany.activity3.model.entity.RestaurantResponse
@@ -37,16 +36,15 @@ class RestaurantRepository {
         }
     }
 
-    // Cambiado a Int para acoplarse con MenuViewModel y fulminar el Type Mismatch
-    suspend fun getMenuFromApi(restaurantId: Int): List<MenuItem> {
+    suspend fun getMenuFromApi(restaurantId: String): List<MenuItem> {
         return try {
-            apiService.getRestaurantMenu(restaurantId.toString())
+            apiService.getRestaurantMenu(restaurantId)
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    suspend fun getUserOrdersFromApi(email: String): List<Order> {
+    suspend fun getUserOrdersFromApi(email: String): List<OrderDTO> {
         return try {
             apiService.getUserOrders(email)
         } catch (e: Exception) {
@@ -59,6 +57,15 @@ class RestaurantRepository {
             apiService.createOrder(email, orderDto)
         } catch (e: Exception) {
             Log.e("RETROFIT_ERROR", "Error al enviar el pedido por POST: ${e.message}", e)
+            null
+        }
+    }
+
+    suspend fun updateOrderInApi(email: String, orderId: Int, orderDto: OrderDTO): OrderDTO? {
+        return try {
+            apiService.updateOrder(email, orderId, orderDto)
+        } catch (e: Exception) {
+            Log.e("RETROFIT_ERROR", "Error al actualizar/cancelar el pedido por PUT: ${e.message}", e)
             null
         }
     }

@@ -21,7 +21,7 @@ class MenuViewModel(restaurant: Restaurant) : ViewModel() {
 
     private fun loadMenu(idRestaurant: Int) {
         viewModelScope.launch {
-            _items.value = repository.getMenuFromApi(idRestaurant)
+            _items.value = repository.getMenuFromApi(idRestaurant.toString())
         }
     }
 }
