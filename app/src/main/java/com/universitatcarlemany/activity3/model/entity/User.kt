@@ -49,15 +49,6 @@ data class User(
 
     fun addOrder(order: Order) {
         orders.add(order)
-
-        when (order.status) {
-            OrderStatus.IN_PROGRESS -> {
-                orders.remove(inProgressOrder)
-                inProgressOrder = order
-            }
-            OrderStatus.PAID -> paidOrders.add(order)
-            OrderStatus.DELIVERED -> deliveredOrders.add(order)
-        }
     }
 
     fun getAllOrders(): List<Order> = orders.toList()

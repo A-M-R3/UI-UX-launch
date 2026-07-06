@@ -6,6 +6,7 @@ import com.universitatcarlemany.activity3.model.entity.MenuItem
 import com.universitatcarlemany.activity3.model.entity.Order
 import com.universitatcarlemany.activity3.model.entity.OrderDTO
 import com.universitatcarlemany.activity3.model.entity.Restaurant
+import com.universitatcarlemany.activity3.model.entity.RestaurantResponse
 import com.universitatcarlemany.activity3.util.LocalDateAdapter
 import com.universitatcarlemany.activity3.util.LocalTimeAdapter
 import retrofit2.Retrofit
@@ -36,9 +37,10 @@ class RestaurantRepository {
         }
     }
 
-    suspend fun getMenuFromApi(restaurantId: String): List<MenuItem> {
+    // Cambiado a Int para acoplarse con MenuViewModel y fulminar el Type Mismatch
+    suspend fun getMenuFromApi(restaurantId: Int): List<MenuItem> {
         return try {
-            apiService.getRestaurantMenu(restaurantId)
+            apiService.getRestaurantMenu(restaurantId.toString())
         } catch (e: Exception) {
             emptyList()
         }

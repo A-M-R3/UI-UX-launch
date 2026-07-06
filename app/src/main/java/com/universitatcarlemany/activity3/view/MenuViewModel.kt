@@ -11,10 +11,8 @@ import kotlinx.coroutines.launch
 class MenuViewModel(restaurant: Restaurant) : ViewModel() {
 
     private val repository = RestaurantRepository()
-
     private val _items = MutableLiveData<List<MenuItem>>()
     val items: MutableLiveData<List<MenuItem>> get() = _items
-
     val restaurantOwner = restaurant
 
     init {
@@ -23,12 +21,7 @@ class MenuViewModel(restaurant: Restaurant) : ViewModel() {
 
     private fun loadMenu(idRestaurant: Int) {
         viewModelScope.launch {
-            val downloadedItems = repository.getMenuFromApi(idRestaurant)
-            downloadedItems.forEach { plato ->
-                plato.restaurant = restaurantOwner
-            }
-
-            _items.value = downloadedItems
+            _items.value = repository.getMenuFromApi(idRestaurant)
         }
     }
 }
